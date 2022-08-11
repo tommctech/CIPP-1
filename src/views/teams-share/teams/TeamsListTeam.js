@@ -5,6 +5,7 @@ import { faEye, faEdit } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Link } from 'react-router-dom'
 import { CippPageList } from 'src/components/layout'
+import { CellTip } from 'src/components/tables'
 
 const TeamsList = () => {
   const tenant = useSelector((state) => state.app.currentTenant)
@@ -31,26 +32,31 @@ const TeamsList = () => {
     {
       name: 'Name',
       selector: (row) => row['displayName'],
-      sort: true,
+      sortable: true,
+      cell: (row) => CellTip(row['displayName']),
       exportSelector: 'displayName',
     },
     {
       name: 'Description',
       selector: (row) => row['description'],
-      sort: true,
+      sortable: true,
+      cell: (row) => CellTip(row['description']),
       exportSelector: 'description',
     },
     {
       name: 'Visibility',
       selector: (row) => row['visibility'],
-      sort: true,
+      sortable: true,
       exportSelector: 'visibility',
+      maxWidth: '100px',
     },
     {
       name: 'Mail nickname',
       selector: (row) => row['mailNickname'],
-      sort: true,
+      sortable: true,
+      cell: (row) => CellTip(row['mailNickname']),
       exportSelector: 'mailNickname',
+      maxWidth: '200px',
     },
     {
       name: 'ID',
@@ -60,6 +66,7 @@ const TeamsList = () => {
     {
       name: 'Actions',
       cell: Actions,
+      maxWidth: '80px',
     },
   ]
 

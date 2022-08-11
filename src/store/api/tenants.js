@@ -7,7 +7,10 @@ export const tenantsApi = baseApi
   .injectEndpoints({
     endpoints: (builder) => ({
       listTenants: builder.query({
-        query: () => ({ path: '/api/ListTenants' }),
+        query: ({ showAllTenantSelector = false }) => ({
+          path: '/api/ListTenants',
+          params: { AllTenantSelector: showAllTenantSelector },
+        }),
         providesTags: ['Tenants'],
       }),
       listTenant: builder.query({
@@ -62,10 +65,11 @@ export const tenantsApi = baseApi
       execAddExcludeTenant: builder.mutation({
         query: (tenantDomain) => ({
           path: '/api/ExecExcludeTenant',
+          method: 'POST',
           params: {
             AddExclusion: true,
-            TenantFilter: tenantDomain,
           },
+          data: tenantDomain,
         }),
         invalidatesTags: ['ExcludedTenants'],
       }),

@@ -1,19 +1,60 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { CButton } from '@coreui/react'
-import { faEdit } from '@fortawesome/free-solid-svg-icons'
+import { faBook, faEdit, faEllipsisV, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { CippPageList } from 'src/components/layout'
 import { Link } from 'react-router-dom'
+import { CippActionsOffcanvas } from 'src/components/utilities'
 
 const Actions = (row, rowIndex, formatExtraData) => {
+  const [ocVisible, setOCVisible] = useState(false)
+
   const tenant = useSelector((state) => state.app.currentTenant)
   return (
-    <Link to={`/endpoint/MEM/edit-policy?ID=${row.id}&tenantDomain=${tenant.defaultDomainName}`}>
-      <CButton size="sm" variant="ghost" color="warning">
-        <FontAwesomeIcon icon={faEdit} />
+    <>
+      <Link
+        to={`/endpoint/MEM/edit-policy?ID=${row.id}&tenantDomain=${tenant.defaultDomainName}&urlName=${row.URLName}`}
+      >
+        <CButton size="sm" variant="ghost" color="warning">
+          <FontAwesomeIcon icon={faEdit} />
+        </CButton>
+      </Link>
+      <CButton size="sm" color="link" onClick={() => setOCVisible(true)}>
+        <FontAwesomeIcon icon={faEllipsisV} />
       </CButton>
-    </Link>
+      <CippActionsOffcanvas
+        title="Policy Information"
+        extendedInfo={[
+          { label: 'Created on', value: `${row.createdDateTime}` },
+          { label: 'Display Name', value: `${row.displayName}` },
+          { label: 'Last Modified', value: `${row.lastModifiedDateTime}` },
+          { label: 'Type', value: `${row.PolicyTypeName}` },
+        ]}
+        actions={[
+          {
+            label: 'Create template based on policy (beta)',
+            color: 'info',
+            modal: true,
+            icon: <FontAwesomeIcon icon={faBook} className="me-2" />,
+            modalUrl: `/api/AddIntuneTemplate?TenantFilter=${tenant.defaultDomainName}&ID=${row.id}&URLName=${row.URLName}`,
+            modalMessage: 'Are you sure you want to create a template based on this policy?',
+          },
+          {
+            label: 'Delete Policy',
+            color: 'danger',
+            modal: true,
+            icon: <FontAwesomeIcon icon={faTrashAlt} className="me-2" />,
+            modalUrl: `/api/RemovePolicy?TenantFilter=${tenant.defaultDomainName}&ID=${row.id}&URLName=${row.URLName}`,
+            modalMessage: 'Are you sure you want to delete this policy?',
+          },
+        ]}
+        placement="end"
+        visible={ocVisible}
+        id={row.id}
+        hideFunction={() => setOCVisible(false)}
+      />
+    </>
   )
 }
 
@@ -38,6 +79,7 @@ const columns = [
   {
     name: 'Actions',
     cell: Actions,
+    maxWidth: '80px',
   },
 ]
 

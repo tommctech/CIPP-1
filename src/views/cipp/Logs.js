@@ -16,39 +16,45 @@ import { Form } from 'react-final-form'
 import { RFFCFormInput, RFFCFormSelect } from 'src/components/forms'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faChevronRight, faChevronDown } from '@fortawesome/free-solid-svg-icons'
-import { CippDatatable } from 'src/components/tables'
-import { useSelector } from 'react-redux'
+import { CippDatatable, cellDateFormatter, CellTip } from 'src/components/tables'
 import { useNavigate } from 'react-router-dom'
+import { useLazyGenericGetRequestQuery } from 'src/store/api/app'
 
 const columns = [
   {
-    name: 'Date',
+    name: 'Date (UTC)',
     selector: (row) => row['DateTime'],
     sortable: true,
+    cell: cellDateFormatter(),
     exportSelector: 'DateTime',
+    minWidth: '145px',
   },
   {
     name: 'Tenant',
     selector: (row) => row['Tenant'],
     sortable: true,
+    cell: (row) => CellTip(row['Tenant']),
     exportSelector: 'Tenant',
   },
   {
     name: 'API',
     selector: (row) => row['API'],
     sortable: true,
+    cell: (row) => CellTip(row['API']),
     exportSelector: 'API',
   },
   {
     name: 'Message',
     selector: (row) => row['Message'],
     sortable: true,
+    cell: (row) => CellTip(row['Message']),
     exportSelector: 'Message',
   },
   {
     name: 'User',
     selector: (row) => row['User'],
     sortable: true,
+    cell: (row) => CellTip(row['User']),
     exportSelector: 'User',
   },
   {
@@ -61,17 +67,22 @@ const columns = [
 
 const Logs = () => {
   let navigate = useNavigate()
-  const tenant = useSelector((state) => state.app.currentTenant)
   let query = useQuery()
-  const sender = query.get('sender')
-  const recipient = query.get('recipient')
-  const days = query.get('days')
+  const severity = query.get('severity')
+  const user = query.get('user')
+  const DateFilter = query.get('DateFilter')
   //const [genericPostRequest, postResults] = useLazyGenericPostRequestQuery()
   const [visibleA, setVisibleA] = useState(false)
+  const [listBackend, listBackendResult] = useLazyGenericGetRequestQuery()
 
   const handleSubmit = async (values) => {
+    Object.keys(values).filter(function (x) {
+      if (values[x] === null) {
+        delete values[x]
+      }
+      return null
+    })
     const shippedValues = {
-      tenantFilter: tenant.defaultDomainName,
       SearchNow: true,
       ...values,
     }
@@ -87,6 +98,7 @@ const Logs = () => {
 
   return (
     <>
+      {listBackendResult.isUninitialized && listBackend({ path: 'api/ListLogs?ListLogs=true' })}
       <CRow>
         <CCol>
           <CCard className="options-card">
@@ -102,10 +114,9 @@ const Logs = () => {
               <CCardBody>
                 <Form
                   initialValues={{
-                    tenantFilter: tenant.defaultDomainName,
-                    sender: sender,
-                    recipient: recipient,
-                    days: days,
+                    Severity: severity,
+                    user: user,
+                    DateFilter: DateFilter,
                   }}
                   onSubmit={handleSubmit}
                   render={({ handleSubmit, submitting, values }) => {
@@ -132,25 +143,15 @@ const Logs = () => {
                           </CCol>
                         </CRow>
                         <CRow>
-                          <CCol>
-                            <RFFCFormSelect
-                              name="logfile"
-                              label="Log File"
-                              placeholder="2"
-                              values={[
-                                { label: '1', value: '1' },
-                                { label: '2', value: '2' },
-                                { label: '3', value: '3' },
-                                { label: '4', value: '4' },
-                                { label: '5', value: '5' },
-                                { label: '6', value: '6' },
-                                { label: '7', value: '7' },
-                                { label: '8', value: '8' },
-                                { label: '9', value: '9' },
-                                { label: '10', value: '10' },
-                              ]}
-                            />
-                          </CCol>
+                          {listBackendResult.isSuccess && (
+                            <CCol>
+                              <RFFCFormSelect
+                                name="DateFilter"
+                                label="Log File"
+                                values={listBackendResult.data}
+                              />
+                            </CCol>
+                          )}
                         </CRow>
                         <CRow className="mb-3">
                           <CCol>
@@ -176,17 +177,24 @@ const Logs = () => {
       </CRow>
       <hr />
       <CippPage title="LogBook Results" tenantSelector={false}>
-        <CippDatatable
-          reportName={`CIPP-Logbook`}
-          path="/api/Listlogs"
-          // params={{
-          // tenantFilter: tenant.defaultDomainName,
-          // sender: sender,
-          // recipient: recipient,
-          // days: days,
-          //}}
-          columns={columns}
-        />
+        <CCard className="content-card">
+          <CCardHeader className="d-flex justify-content-between align-items-center">
+            <CCardTitle>Results</CCardTitle>
+          </CCardHeader>
+          <CCardBody>
+            <CippDatatable
+              reportName={`CIPP-Logbook`}
+              path="/api/Listlogs"
+              params={{
+                Severity: severity,
+                user: user,
+                DateFilter: DateFilter,
+                Filter: !!DateFilter,
+              }}
+              columns={columns}
+            />
+          </CCardBody>
+        </CCard>
       </CippPage>
     </>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { CippPageList } from 'src/components/layout'
+import { CellTip } from 'src/components/tables'
 
 const OneDriveList = () => {
   const tenant = useSelector((state) => state.app.currentTenant)
@@ -8,37 +9,39 @@ const OneDriveList = () => {
     {
       name: 'Name',
       selector: (row) => row['displayName'],
-      sort: true,
+      sortable: true,
+      cell: (row) => CellTip(row['displayName']),
       exportSelector: 'displayName',
     },
     {
       name: 'UPN',
       selector: (row) => row['UPN'],
-      sort: true,
+      sortable: true,
+      cell: (row) => CellTip(row['UPN']),
       exportSelector: 'UPN',
     },
     {
       name: 'Last Active',
       selector: (row) => row['LastActive'],
-      sort: true,
+      sortable: true,
       exportSelector: 'LastActive',
     },
     {
       name: 'File Count (Total)',
       selector: (row) => row['FileCount'],
-      sort: true,
+      sortable: true,
       exportSelector: 'FileCount',
     },
     {
       name: 'Used (GB)',
       selector: (row) => row['UsedGB'],
-      sort: true,
+      sortable: true,
       exportSelector: 'UsedGB',
     },
     {
       name: 'Allocated (GB)',
       selector: (row) => row['Allocated'],
-      sort: true,
+      sortable: true,
       exportSelector: 'Allocated',
     },
   ]
